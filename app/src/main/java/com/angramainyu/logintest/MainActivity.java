@@ -19,6 +19,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void register(View view){
+        startActivity(new Intent(this,RegisterActivity.class));
+    }
+
     public void exit(View view) {
         finish();
     }
