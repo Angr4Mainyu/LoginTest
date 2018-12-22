@@ -3,8 +3,11 @@ package com.angramainyu.logintest;
 import android.app.Activity;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.widget.*;
+
+import java.util.ArrayList;
 
 /**
  * 登录界面
@@ -18,8 +21,9 @@ public class RegisterActivity extends Activity
     private EditText et_password_check;
     private Button mRegisterBtn;
     private ImageView iv_see_password;
-
+    private  String TAG = "Register";
     private LoadingDialog mLoadingDialog; //显示正在加载的对话框
+    private ArrayList<User> mUsers; // 用户列表
 
 
     @Override
@@ -28,6 +32,7 @@ public class RegisterActivity extends Activity
         setContentView(R.layout.activity_register);
         initViews();
         setupEvents();
+        mUsers = Utils.getUserList(RegisterActivity.this);
     }
 
     private void initViews() {
@@ -76,7 +81,7 @@ public class RegisterActivity extends Activity
             return;
         }
 
-        if (getPasswordCheck() != getPassword()){
+        if (!getPasswordCheck().equals(getPassword())){
             showToast("你输入的两次密码不一样！");
             return;
         }
@@ -93,28 +98,39 @@ public class RegisterActivity extends Activity
                 //判断账号和密码
                 String username = getAccount();
                 String password = getPassword();
-
+                User curUser = null;
+//                遍历所有用户寻找是否存在
+                try {
+                    for(User user: mUsers){
+                        if(user.getId().equals(username)){
+                            curUser = user;
+                            break;
+                        }
+                    }
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if(curUser != null && !curUser.equals("")){
+                    showToast("用户名已存在");
+                }else{
 //                将账号密码存入本地文件之中
-                showToast("注册成功");
+                    curUser = new User(username, password);
+                    mUsers.add(curUser);
+                    Log.i(TAG, mUsers.get(0).getId()+mUsers.get(0).getPwd());
+                    try {
+                        Utils.saveUserList(RegisterActivity.this,mUsers);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    showToast("注册成功");
+                }
                 setLoginBtnClickable(true);  //这里解放登录按钮，设置为可以点击
                 hideLoading();//隐藏加载框
+                finish();
             }
         };
         RegisterRunnable.start();
 
-
-    }
-
-
-
-    /**
-     * 保存用户账号
-     */
-    public void loadUserName() {
-        if (!getAccount().equals("") || !getAccount().equals("请输入登录账号")) {
-            SharedPreferencesUtils helper = new SharedPreferencesUtils(this, "setting");
-            helper.putValues(new SharedPreferencesUtils.ContentValue("name", getAccount()));
-        }
 
     }
 
@@ -156,37 +172,6 @@ public class RegisterActivity extends Activity
      */
     public String getPasswordCheck() {
         return et_password_check.getText().toString().trim();
-    }
-
-    /**
-     * 保存按钮的状态值
-     */
-    public void loadCheckBoxState(CheckBox checkBox_password, CheckBox checkBox_login) {
-
-        //获取SharedPreferences对象，使用自定义类的方法来获取对象
-        SharedPreferencesUtils helper = new SharedPreferencesUtils(this, "setting");
-
-        //如果设置自动登录
-        if (checkBox_login.isChecked()) {
-            //创建记住密码和自动登录是都选择,保存密码数据
-            helper.putValues(
-                    new SharedPreferencesUtils.ContentValue("remenberPassword", true),
-                    new SharedPreferencesUtils.ContentValue("autoLogin", true),
-                    new SharedPreferencesUtils.ContentValue("password", Base64Utils.encryptBASE64(getPassword())));
-
-        } else if (!checkBox_password.isChecked()) { //如果没有保存密码，那么自动登录也是不选的
-            //创建记住密码和自动登录是默认不选,密码为空
-            helper.putValues(
-                    new SharedPreferencesUtils.ContentValue("remenberPassword", false),
-                    new SharedPreferencesUtils.ContentValue("autoLogin", false),
-                    new SharedPreferencesUtils.ContentValue("password", ""));
-        } else if (checkBox_password.isChecked()) {   //如果保存密码，没有自动登录
-            //创建记住密码为选中和自动登录是默认不选,保存密码数据
-            helper.putValues(
-                    new SharedPreferencesUtils.ContentValue("remenberPassword", true),
-                    new SharedPreferencesUtils.ContentValue("autoLogin", false),
-                    new SharedPreferencesUtils.ContentValue("password", Base64Utils.encryptBASE64(getPassword())));
-        }
     }
 
     /**
