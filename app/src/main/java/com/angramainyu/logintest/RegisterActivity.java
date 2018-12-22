@@ -83,7 +83,7 @@ public class RegisterActivity extends Activity
 
         //创建子线程来进行注册操作
         showLoading();//显示加载框
-        Thread loginRunnable = new Thread() {
+        Thread RegisterRunnable = new Thread() {
 
             @Override
             public void run() {
@@ -92,23 +92,15 @@ public class RegisterActivity extends Activity
 
                 //判断账号和密码
                 String username = getAccount();
-
                 String password = getPassword();
 
-                if (getAccount().equals("csdn") && getPassword().equals("123456")) {
-                    showToast("登录成功");
-//                    loadCheckBoxState();//记录下当前用户记住密码和自动登录的状态;
-
-                    finish();//关闭页面
-                } else {
-                    showToast("输入的登录账号或密码不正确");
-                }
-
+//                将账号密码存入本地文件之中
+                showToast("注册成功");
                 setLoginBtnClickable(true);  //这里解放登录按钮，设置为可以点击
                 hideLoading();//隐藏加载框
             }
         };
-        loginRunnable.start();
+        RegisterRunnable.start();
 
 
     }
