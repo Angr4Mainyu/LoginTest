@@ -10,4 +10,5 @@
     <string name="loading">正在加载数据</string>
     <string name="todo">TODO</string>
     <string name="password_check">请再次输入密码</string>
+    <string name="permissionDesc">访问权限</string>
 </resources>

@@ -9,6 +9,10 @@ import android.view.View;
 import android.widget.*;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static android.text.TextUtils.split;
 
 /**
  * 登录界面
@@ -138,6 +142,11 @@ public class LoginActivity extends Activity
 
         if (getPassword().isEmpty()){
             showToast("你输入的密码为空！");
+            return;
+        }
+        //        对输入的字符串进行过滤
+        if(inputcheck(getAccount()) || inputcheck(getPassword())) {
+            showToast("存在非法字符！");
             return;
         }
         //登录一般都是请求服务器来判断密码是否正确，要请求网络，要子线程
@@ -335,5 +344,28 @@ public class LoginActivity extends Activity
         });
 
     }
+    public boolean inputcheck(String targerStr){
+        List<String> checkSQLs = null;
+//        典型的SQL注入正则表达式
+        checkSQLs.add("/\\w*((\\%27)|(\\’))((\\%6F)|o|(\\%4F))((\\%72)|r|(\\%52))/ix");
+//        检测SQL注入，UNION查询关键字的正则表达式
+        checkSQLs.add("/((\\%27)|(\\’))union/ix(\\%27)|(\\’)");
+//        监测MS SQL Server 注入攻击的正则表达式
+        checkSQLs.add("/exec(\\s|\\+)+(s|x)p\\w+/ix");
+        for(String checkSQL:checkSQLs){
+            if(Pattern.matches(checkSQL,targerStr)){
+                return true;
+            }
+        }
 
+//        然后还需要监测是否有特殊字符，这个是比较通用的方法
+        String inj_str = "'|and|exec|insert|select|delete|update|count|*|%|chr|mid|master|truncate|char|declare|;|or|-|+|,";
+        String inj_stra[] = split(inj_str,"|");
+        for (int i=0 ; i < inj_stra.length ; i++ ){
+            if (targerStr.indexOf(inj_stra[i]) >=0) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
